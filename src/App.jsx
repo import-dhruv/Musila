@@ -111,29 +111,29 @@ export default function App() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-10">
-        <div className="px-5 py-2 rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md">
+      <div className="absolute top-4 sm:top-6 left-4 sm:left-6 right-4 sm:right-6 flex items-center justify-between z-10">
+        <div className="px-4 sm:px-5 py-2 rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md">
           <span className="text-white text-sm font-semibold tracking-widest uppercase">
             Funk
           </span>
         </div>
-        <span className="text-white/40 text-xs tracking-wider">
+        <span className="text-white/40 text-xs sm:text-sm tracking-wider">
           Made by @importdhruv
         </span>
       </div>
 
       {/* ── Player ──────────────────────────────────────────────────── */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[420px] z-10">
+      <div className="absolute bottom-4 sm:bottom-10 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-[420px] z-10">
 
         {/* Song name */}
-        <div className="mb-3 px-5 py-3 rounded-2xl border border-white/15 bg-white/5 backdrop-blur-xl">
+        <div className="mb-3 px-4 sm:px-5 py-3 rounded-2xl border border-white/15 bg-white/5 backdrop-blur-xl">
           <p className="text-white text-sm font-medium tracking-wide truncate">
             {SONG_NAME}
           </p>
         </div>
 
         {/* Progress + controls */}
-        <div className="px-5 pt-4 pb-5 rounded-3xl border border-white/15 bg-white/5 backdrop-blur-xl">
+        <div className="px-4 sm:px-5 pt-4 pb-5 rounded-3xl border border-white/15 bg-white/5 backdrop-blur-xl">
 
           {/* Time labels */}
           <div className="flex justify-between mb-2">
@@ -142,12 +142,12 @@ export default function App() {
           </div>
 
           {/* Scrubber */}
-          <div className="relative mb-5">
+          <div className="relative mb-5 py-2 -my-2">
             {/* Track background */}
             <div className="w-full h-1 rounded-full bg-white/15" />
             {/* Filled portion */}
             <div
-              className="absolute top-0 left-0 h-1 rounded-full bg-white transition-all"
+              className="absolute top-2 left-0 h-1 rounded-full bg-white transition-all"
               style={{ width: `${progress}%` }}
             />
             {/* Native range (invisible, sits on top for interaction) */}
@@ -162,17 +162,17 @@ export default function App() {
               onMouseUp={() => setSeeking(false)}
               onTouchStart={() => setSeeking(true)}
               onTouchEnd={() => setSeeking(false)}
-              className="absolute inset-0 w-full opacity-0 cursor-pointer h-1"
+              className="absolute top-0 left-0 w-full h-5 opacity-0 cursor-pointer"
             />
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center justify-center gap-4 sm:gap-6">
 
             {/* Restart / Prev */}
             <button
               onClick={restart}
-              className="w-11 h-11 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/15 transition flex items-center justify-center"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/15 transition flex items-center justify-center"
             >
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
@@ -182,7 +182,7 @@ export default function App() {
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
-              className="w-14 h-14 rounded-full border border-white/20 bg-white/10 hover:bg-white/25 transition flex items-center justify-center"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border border-white/20 bg-white/10 hover:bg-white/25 transition flex items-center justify-center"
             >
               {playing ? (
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -198,7 +198,7 @@ export default function App() {
             {/* Skip +10s */}
             <button
               onClick={skipForward}
-              className="w-11 h-11 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/15 transition flex items-center justify-center"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/15 transition flex items-center justify-center"
             >
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM14 6v12h2V6h-2z" />
