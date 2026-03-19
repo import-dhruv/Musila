@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-const VIDEO_URL = "/background.mp4";
+// Replace this URL with your Cloudflare R2 public URL after upload
+const VIDEO_URL = "https://pub-YOUR-BUCKET-ID.r2.dev/background.mp4";
 const SONG_URL  = "/funkify.mp3";
 
 // ── All timestamps from description ─────────────────────────────────────────
@@ -135,53 +136,29 @@ export default function App() {
   const rafRef                  = useRef(null);
   const videoRef                = useRef(null);
 
-  // Handle video autoplay
+  // Handle video autoplay from cloud
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
-      // Set video properties for better performance with high-res video
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
       
-      // Reduce playback rate slightly to help with performance
-      video.playbackRate = 0.95;
-      
       const playVideo = async () => {
         try {
-          // Wait for sufficient buffering before playing
-          if (video.readyState >= 2) {
-            await video.play();
-            console.log('Video started playing');
-          }
+          await video.play();
+          console.log('Cloud video started playing');
         } catch (error) {
-          console.log('Video autoplay blocked or failed:', error.message);
-          // Video will play when user interacts
+          console.log('Video autoplay blocked:', error.message);
         }
       };
       
-      // Handle different loading states
-      const handleCanPlay = () => {
-        // Add a delay to ensure enough is buffered
-        setTimeout(playVideo, 500);
-      };
-      
-      const handleLoadedData = () => {
-        console.log('Video data loaded, waiting for more buffering...');
-      };
-      
-      if (video.readyState >= 2) {
+      // Play when ready
+      if (video.readyState >= 3) {
         playVideo();
       } else {
-        video.addEventListener('loadeddata', handleLoadedData, { once: true });
-        video.addEventListener('canplay', handleCanPlay, { once: true });
+        video.addEventListener('canplay', playVideo, { once: true });
       }
-      
-      // Cleanup
-      return () => {
-        video.removeEventListener('loadeddata', handleLoadedData);
-        video.removeEventListener('canplay', handleCanPlay);
-      };
     }
   }, []);
 
@@ -278,29 +255,24 @@ export default function App() {
         loop
         playsInline
         preload="metadata"
+        crossOrigin="anonymous"
         className="absolute inset-0 w-full h-full object-cover opacity-60"
         style={{ 
           filter: 'brightness(0.8) contrast(1.1)',
-          transform: 'scale(1.01)' // Slight scale to avoid edge artifacts
+          transform: 'scale(1.01)'
         }}
-        onLoadStart={() => console.log('Video load started')}
-        onLoadedData={() => console.log('Video data loaded')}
-        onCanPlay={() => console.log('Video can play')}
+        onLoadStart={() => console.log('Video load started from cloud')}
+        onLoadedData={() => console.log('Video data loaded from cloud')}
+        onCanPlay={() => console.log('Video can play from cloud')}
         onError={(e) => {
           console.error('Video error:', e.target.error);
-          // Try to reload the video once
-          if (!e.target.hasAttribute('data-retry')) {
-            e.target.setAttribute('data-retry', 'true');
-            setTimeout(() => {
-              e.target.load();
-            }, 1000);
-          }
+          console.log('Falling back to gradient background');
         }}
-        onStalled={() => {
-          console.log('Video stalled - trying to continue');
+        onProgress={() => {
           const video = videoRef.current;
-          if (video) {
-            video.load();
+          if (video && video.buffered.length > 0) {
+            const buffered = (video.buffered.end(0) / video.duration) * 100;
+            console.log(`Video buffered: ${buffered.toFixed(1)}%`);
           }
         }}
       >
@@ -308,7 +280,7 @@ export default function App() {
         Your browser does not support the video tag.
       </video>
       
-      {/* Fallback background - only shows if video fails */}
+      {/* Fallback background */}
       <div 
         className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black opacity-60"
         style={{ zIndex: -1 }}
