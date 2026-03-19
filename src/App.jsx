@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-const VIDEO_URL = "/background.mp4";
+const VIDEO_URL = "/background_optimized.mp4";
 const SONG_URL  = "/funkify.mp3";
 
 // ── All timestamps from description ─────────────────────────────────────────
@@ -146,19 +146,31 @@ export default function App() {
       
       const playVideo = async () => {
         try {
+          // Add a small delay to let the video load
+          await new Promise(resolve => setTimeout(resolve, 1000));
           await video.play();
           console.log('Video started playing');
         } catch (error) {
-          console.log('Video autoplay blocked, will play on user interaction');
+          console.log('Video autoplay blocked or failed:', error.message);
+          // Don't hide video, let user interaction handle it
         }
       };
       
       // Try to play when video is loaded
+      const handleCanPlay = () => {
+        playVideo();
+      };
+      
       if (video.readyState >= 3) {
         playVideo();
       } else {
-        video.addEventListener('canplay', playVideo, { once: true });
+        video.addEventListener('canplay', handleCanPlay, { once: true });
       }
+      
+      // Cleanup
+      return () => {
+        video.removeEventListener('canplay', handleCanPlay);
+      };
     }
   }, []);
 
@@ -258,12 +270,20 @@ export default function App() {
         onLoadStart={() => console.log('Video load started')}
         onLoadedData={() => console.log('Video data loaded')}
         onCanPlay={() => console.log('Video can play')}
-        onError={(e) => console.error('Video error:', e.target.error)}
+        onError={(e) => {
+          console.error('Video error:', e.target.error);
+          // Hide video on error and show fallback
+          e.target.style.display = 'none';
+        }}
+        onStalled={() => console.log('Video stalled')}
+        onWaiting={() => console.log('Video waiting')}
       >
         <source src={VIDEO_URL} type="video/mp4" />
-        {/* Fallback for browsers that don't support the video */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black" />
+        Your browser does not support the video tag.
       </video>
+      
+      {/* Fallback background - always present */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black opacity-60" />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
