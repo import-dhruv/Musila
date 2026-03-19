@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-// Cloudinary video hosting - reliable and fast
-const VIDEO_URL = "https://res.cloudinary.com/djtczr1q0/video/upload/v1773902313/galbrena-dual-flame-eyes-awakening-wuthering-waves-moewalls-com_bevrri.mp4";
+// Cloudinary video hosting with updated URL
+const VIDEO_URL = "https://res.cloudinary.com/djtczr1q0/video/upload/v1773902335/galbrena-dual-flame-eyes-awakening-wuthering-waves-moewalls-com_kebuzj.mp4";
 const SONG_URL = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/funkify.mp3";
 
 // ── All timestamps from description ─────────────────────────────────────────
