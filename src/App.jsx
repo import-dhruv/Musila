@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-// GitHub Release URL - now working with your actual release!
+// GitHub Release URLs - both video and audio hosted externally
 const VIDEO_URL = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/background.mp4";
-const SONG_URL  = "/funkify.mp3";
+const SONG_URL  = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/funkify.mp3";
 
 // ── All timestamps from description ─────────────────────────────────────────
 const TRACKS = [

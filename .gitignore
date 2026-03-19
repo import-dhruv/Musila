@@ -25,6 +25,7 @@ dist-ssr
 
 # Large media files (hosted externally for Vercel deployment)
 public/background.mp4
+public/funkify.mp3
 
 # Vercel
 .vercel
