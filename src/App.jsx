@@ -133,6 +133,34 @@ export default function App() {
   const [songName, setSongName] = useState(TRACKS[0].name);
   const howlRef                 = useRef(null);
   const rafRef                  = useRef(null);
+  const videoRef                = useRef(null);
+
+  // Handle video autoplay
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      const playVideo = async () => {
+        try {
+          await video.play();
+        } catch (error) {
+          console.log('Video autoplay failed:', error);
+          // Fallback: try to play on user interaction
+          const handleUserInteraction = async () => {
+            try {
+              await video.play();
+              document.removeEventListener('click', handleUserInteraction);
+              document.removeEventListener('touchstart', handleUserInteraction);
+            } catch (e) {
+              console.log('Video play failed:', e);
+            }
+          };
+          document.addEventListener('click', handleUserInteraction);
+          document.addEventListener('touchstart', handleUserInteraction);
+        }
+      };
+      playVideo();
+    }
+  }, []);
 
   useEffect(() => {
     const sound = new Howl({
@@ -215,10 +243,29 @@ export default function App() {
 
       {/* Video Background */}
       <video
+        ref={videoRef}
         src={VIDEO_URL}
-        autoPlay muted loop playsInline preload="metadata"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
         className="absolute inset-0 w-full h-full object-cover opacity-60"
-      />
+        onLoadedData={(e) => {
+          // Ensure video plays on load
+          e.target.play().catch(console.error);
+        }}
+        onCanPlay={(e) => {
+          // Try to play when video can play
+          e.target.play().catch(console.error);
+        }}
+        onError={(e) => {
+          console.error('Video failed to load:', e);
+        }}
+      >
+        {/* Fallback for browsers that don't support the video */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black" />
+      </video>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
