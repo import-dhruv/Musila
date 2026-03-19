@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-// For Vercel deployment - using GitHub Releases for video hosting
+// GitHub Release URL - now working with your actual release!
 const VIDEO_URL = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/background.mp4";
 const SONG_URL  = "/funkify.mp3";
 
@@ -136,7 +136,7 @@ export default function App() {
   const rafRef                  = useRef(null);
   const videoRef                = useRef(null);
 
-  // Handle video autoplay from cloud
+  // Handle video autoplay from GitHub Releases
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -147,18 +147,28 @@ export default function App() {
       const playVideo = async () => {
         try {
           await video.play();
-          console.log('Cloud video started playing');
+          console.log('GitHub release video started playing');
         } catch (error) {
           console.log('Video autoplay blocked:', error.message);
+          // Video will play when user clicks play button
         }
       };
       
-      // Play when ready
+      // Add a small delay for GitHub CDN
+      const handleCanPlay = () => {
+        setTimeout(playVideo, 500);
+      };
+      
       if (video.readyState >= 3) {
         playVideo();
       } else {
-        video.addEventListener('canplay', playVideo, { once: true });
+        video.addEventListener('canplay', handleCanPlay, { once: true });
       }
+      
+      // Cleanup
+      return () => {
+        video.removeEventListener('canplay', handleCanPlay);
+      };
     }
   }, []);
 
@@ -248,31 +258,33 @@ export default function App() {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black font-sans">
 
-      {/* Video Background */}
+      {/* Video Background - GitHub Releases CDN */}
       <video
         ref={videoRef}
         muted
         loop
         playsInline
         preload="metadata"
-        crossOrigin="anonymous"
         className="absolute inset-0 w-full h-full object-cover opacity-60"
         style={{ 
           filter: 'brightness(0.8) contrast(1.1)',
           transform: 'scale(1.01)'
         }}
-        onLoadStart={() => console.log('Video load started from cloud')}
-        onLoadedData={() => console.log('Video data loaded from cloud')}
-        onCanPlay={() => console.log('Video can play from cloud')}
+        onLoadStart={() => console.log('Loading video from GitHub Releases...')}
+        onLoadedData={() => console.log('GitHub video data loaded successfully')}
+        onCanPlay={() => console.log('GitHub video ready to play')}
         onError={(e) => {
-          console.error('Video error:', e.target.error);
-          console.log('Falling back to gradient background');
+          console.error('GitHub video error:', e.target.error);
+          console.log('Using gradient background fallback');
+          e.target.style.display = 'none';
         }}
         onProgress={() => {
           const video = videoRef.current;
           if (video && video.buffered.length > 0) {
             const buffered = (video.buffered.end(0) / video.duration) * 100;
-            console.log(`Video buffered: ${buffered.toFixed(1)}%`);
+            if (buffered > 0) {
+              console.log(`GitHub video buffered: ${buffered.toFixed(1)}%`);
+            }
           }
         }}
       >
@@ -280,11 +292,18 @@ export default function App() {
         Your browser does not support the video tag.
       </video>
       
-      {/* Fallback background */}
+      {/* Enhanced Fallback background - always visible until video loads */}
       <div 
         className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black opacity-60"
         style={{ zIndex: -1 }}
       />
+      
+      {/* Animated background particles for better visual appeal */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white rounded-full animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white rounded-full animate-ping"></div>
+        <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-1000"></div>
+      </div>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
