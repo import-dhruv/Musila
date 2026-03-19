@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-const VIDEO_URL = "/background_optimized.mp4";
+const VIDEO_URL = "/background.mp4";
 const SONG_URL  = "/funkify.mp3";
 
 // ── All timestamps from description ─────────────────────────────────────────
@@ -139,36 +139,47 @@ export default function App() {
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
-      // Set video properties
+      // Set video properties for better performance with high-res video
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
       
+      // Reduce playback rate slightly to help with performance
+      video.playbackRate = 0.95;
+      
       const playVideo = async () => {
         try {
-          // Add a small delay to let the video load
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          await video.play();
-          console.log('Video started playing');
+          // Wait for sufficient buffering before playing
+          if (video.readyState >= 2) {
+            await video.play();
+            console.log('Video started playing');
+          }
         } catch (error) {
           console.log('Video autoplay blocked or failed:', error.message);
-          // Don't hide video, let user interaction handle it
+          // Video will play when user interacts
         }
       };
       
-      // Try to play when video is loaded
+      // Handle different loading states
       const handleCanPlay = () => {
-        playVideo();
+        // Add a delay to ensure enough is buffered
+        setTimeout(playVideo, 500);
       };
       
-      if (video.readyState >= 3) {
+      const handleLoadedData = () => {
+        console.log('Video data loaded, waiting for more buffering...');
+      };
+      
+      if (video.readyState >= 2) {
         playVideo();
       } else {
+        video.addEventListener('loadeddata', handleLoadedData, { once: true });
         video.addEventListener('canplay', handleCanPlay, { once: true });
       }
       
       // Cleanup
       return () => {
+        video.removeEventListener('loadeddata', handleLoadedData);
         video.removeEventListener('canplay', handleCanPlay);
       };
     }
@@ -266,24 +277,42 @@ export default function App() {
         muted
         loop
         playsInline
+        preload="metadata"
         className="absolute inset-0 w-full h-full object-cover opacity-60"
+        style={{ 
+          filter: 'brightness(0.8) contrast(1.1)',
+          transform: 'scale(1.01)' // Slight scale to avoid edge artifacts
+        }}
         onLoadStart={() => console.log('Video load started')}
         onLoadedData={() => console.log('Video data loaded')}
         onCanPlay={() => console.log('Video can play')}
         onError={(e) => {
           console.error('Video error:', e.target.error);
-          // Hide video on error and show fallback
-          e.target.style.display = 'none';
+          // Try to reload the video once
+          if (!e.target.hasAttribute('data-retry')) {
+            e.target.setAttribute('data-retry', 'true');
+            setTimeout(() => {
+              e.target.load();
+            }, 1000);
+          }
         }}
-        onStalled={() => console.log('Video stalled')}
-        onWaiting={() => console.log('Video waiting')}
+        onStalled={() => {
+          console.log('Video stalled - trying to continue');
+          const video = videoRef.current;
+          if (video) {
+            video.load();
+          }
+        }}
       >
         <source src={VIDEO_URL} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       
-      {/* Fallback background - always present */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black opacity-60" />
+      {/* Fallback background - only shows if video fails */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black opacity-60"
+        style={{ zIndex: -1 }}
+      />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
