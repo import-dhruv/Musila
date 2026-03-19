@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-// GitHub Release URLs - both video and audio hosted externally
-const VIDEO_URL = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/background.mp4";
-const SONG_URL  = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/funkify.mp3";
+// Cloudinary video hosting - reliable and fast
+const VIDEO_URL = "https://res.cloudinary.com/djtczr1q0/video/upload/v1773902313/galbrena-dual-flame-eyes-awakening-wuthering-waves-moewalls-com_bevrri.mp4";
+const SONG_URL = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/funkify.mp3";
 
 // ── All timestamps from description ─────────────────────────────────────────
 const TRACKS = [
@@ -136,7 +136,7 @@ export default function App() {
   const rafRef                  = useRef(null);
   const videoRef                = useRef(null);
 
-  // Handle video autoplay from GitHub Releases with CORS handling
+  // Handle Cloudinary video autoplay
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -146,46 +146,23 @@ export default function App() {
       
       const playVideo = async () => {
         try {
-          // Test if video can load first
-          await new Promise((resolve, reject) => {
-            const testVideo = document.createElement('video');
-            testVideo.crossOrigin = 'anonymous';
-            testVideo.onloadeddata = resolve;
-            testVideo.onerror = reject;
-            testVideo.src = VIDEO_URL;
-            setTimeout(reject, 5000); // 5 second timeout
-          });
-          
           await video.play();
-          console.log('GitHub release video started playing');
+          console.log('Cloudinary video started playing');
         } catch (error) {
-          console.log('Video failed to load or autoplay blocked:', error.message);
-          console.log('Using gradient background fallback');
-          video.style.display = 'none';
+          console.log('Video autoplay blocked:', error.message);
+          // Video will play when user clicks play button
         }
-      };
-      
-      // Add a delay for GitHub CDN and try to play
-      const handleCanPlay = () => {
-        setTimeout(playVideo, 1000);
       };
       
       if (video.readyState >= 3) {
         playVideo();
       } else {
-        video.addEventListener('canplay', handleCanPlay, { once: true });
-        // Fallback timeout
-        setTimeout(() => {
-          if (video.readyState < 3) {
-            console.log('Video loading timeout, using gradient background');
-            video.style.display = 'none';
-          }
-        }, 10000);
+        video.addEventListener('canplay', playVideo, { once: true });
       }
       
       // Cleanup
       return () => {
-        video.removeEventListener('canplay', handleCanPlay);
+        video.removeEventListener('canplay', playVideo);
       };
     }
   }, []);
@@ -276,58 +253,34 @@ export default function App() {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black font-sans">
 
-      {/* Video Background - GitHub Releases CDN with CORS handling */}
+      {/* Cloudinary Video Background */}
       <video
         ref={videoRef}
         muted
         loop
         playsInline
-        preload="none"
-        className="absolute inset-0 w-full h-full object-cover opacity-60"
+        preload="metadata"
+        className="absolute inset-0 w-full h-full object-cover opacity-70"
         style={{ 
           filter: 'brightness(0.8) contrast(1.1)',
           transform: 'scale(1.01)'
         }}
-        onLoadStart={() => console.log('Loading video from GitHub Releases...')}
-        onLoadedData={() => console.log('GitHub video data loaded successfully')}
-        onCanPlay={() => console.log('GitHub video ready to play')}
+        onLoadStart={() => console.log('Loading video from Cloudinary...')}
+        onLoadedData={() => console.log('Cloudinary video data loaded successfully')}
+        onCanPlay={() => console.log('Cloudinary video ready to play')}
         onError={(e) => {
-          console.error('GitHub video error:', e.target.error);
-          console.log('Video failed to load from GitHub, using gradient background');
-          // Hide the video element and show gradient background
-          e.target.style.display = 'none';
-          // Try to load video with different approach
-          setTimeout(() => {
-            if (e.target.style.display === 'none') {
-              console.log('Using gradient background fallback');
-            }
-          }, 2000);
-        }}
-        onStalled={() => {
-          console.log('Video stalled, retrying...');
-          const video = videoRef.current;
-          if (video) {
-            video.load();
-          }
+          console.error('Cloudinary video error:', e.target.error);
+          console.log('Using gradient background fallback');
         }}
       >
         <source src={VIDEO_URL} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       
-      {/* Enhanced Fallback background - always visible until video loads */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black opacity-60"
-        style={{ zIndex: -1 }}
-      />
-      
-      {/* Animated background particles for better visual appeal when video fails */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white rounded-full animate-ping"></div>
-        <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-1000"></div>
-        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-300 rounded-full animate-pulse delay-500"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-blue-300 rounded-full animate-ping delay-700"></div>
+      {/* Fallback background - shown if video fails to load */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 animate-pulse" style={{ zIndex: -1 }}>
+        <div className="absolute inset-0 bg-gradient-to-tr from-pink-800/30 via-transparent to-cyan-800/30 animate-spin-slow"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-violet-800/20 via-transparent to-emerald-800/20 animate-spin-slow-reverse"></div>
       </div>
 
       {/* Overlay */}
