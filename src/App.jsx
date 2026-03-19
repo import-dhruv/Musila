@@ -139,26 +139,26 @@ export default function App() {
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
+      // Set video properties
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      
       const playVideo = async () => {
         try {
           await video.play();
+          console.log('Video started playing');
         } catch (error) {
-          console.log('Video autoplay failed:', error);
-          // Fallback: try to play on user interaction
-          const handleUserInteraction = async () => {
-            try {
-              await video.play();
-              document.removeEventListener('click', handleUserInteraction);
-              document.removeEventListener('touchstart', handleUserInteraction);
-            } catch (e) {
-              console.log('Video play failed:', e);
-            }
-          };
-          document.addEventListener('click', handleUserInteraction);
-          document.addEventListener('touchstart', handleUserInteraction);
+          console.log('Video autoplay blocked, will play on user interaction');
         }
       };
-      playVideo();
+      
+      // Try to play when video is loaded
+      if (video.readyState >= 3) {
+        playVideo();
+      } else {
+        video.addEventListener('canplay', playVideo, { once: true });
+      }
     }
   }, []);
 
@@ -199,6 +199,13 @@ export default function App() {
 
   const togglePlay = () => {
     if (!howlRef.current || !loaded) return;
+    
+    // Try to start video when user interacts
+    const video = videoRef.current;
+    if (video && video.paused) {
+      video.play().catch(console.error);
+    }
+    
     if (playing) { howlRef.current.pause(); setPlaying(false); }
     else { howlRef.current.play(); setPlaying(true); }
   };
@@ -244,25 +251,16 @@ export default function App() {
       {/* Video Background */}
       <video
         ref={videoRef}
-        src={VIDEO_URL}
-        autoPlay
         muted
         loop
         playsInline
-        preload="auto"
         className="absolute inset-0 w-full h-full object-cover opacity-60"
-        onLoadedData={(e) => {
-          // Ensure video plays on load
-          e.target.play().catch(console.error);
-        }}
-        onCanPlay={(e) => {
-          // Try to play when video can play
-          e.target.play().catch(console.error);
-        }}
-        onError={(e) => {
-          console.error('Video failed to load:', e);
-        }}
+        onLoadStart={() => console.log('Video load started')}
+        onLoadedData={() => console.log('Video data loaded')}
+        onCanPlay={() => console.log('Video can play')}
+        onError={(e) => console.error('Video error:', e.target.error)}
       >
+        <source src={VIDEO_URL} type="video/mp4" />
         {/* Fallback for browsers that don't support the video */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black" />
       </video>
