@@ -136,7 +136,7 @@ export default function App() {
   const rafRef                  = useRef(null);
   const videoRef                = useRef(null);
 
-  // Handle video autoplay from GitHub Releases
+  // Handle video autoplay from GitHub Releases with CORS handling
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -146,23 +146,41 @@ export default function App() {
       
       const playVideo = async () => {
         try {
+          // Test if video can load first
+          await new Promise((resolve, reject) => {
+            const testVideo = document.createElement('video');
+            testVideo.crossOrigin = 'anonymous';
+            testVideo.onloadeddata = resolve;
+            testVideo.onerror = reject;
+            testVideo.src = VIDEO_URL;
+            setTimeout(reject, 5000); // 5 second timeout
+          });
+          
           await video.play();
           console.log('GitHub release video started playing');
         } catch (error) {
-          console.log('Video autoplay blocked:', error.message);
-          // Video will play when user clicks play button
+          console.log('Video failed to load or autoplay blocked:', error.message);
+          console.log('Using gradient background fallback');
+          video.style.display = 'none';
         }
       };
       
-      // Add a small delay for GitHub CDN
+      // Add a delay for GitHub CDN and try to play
       const handleCanPlay = () => {
-        setTimeout(playVideo, 500);
+        setTimeout(playVideo, 1000);
       };
       
       if (video.readyState >= 3) {
         playVideo();
       } else {
         video.addEventListener('canplay', handleCanPlay, { once: true });
+        // Fallback timeout
+        setTimeout(() => {
+          if (video.readyState < 3) {
+            console.log('Video loading timeout, using gradient background');
+            video.style.display = 'none';
+          }
+        }, 10000);
       }
       
       // Cleanup
@@ -258,13 +276,13 @@ export default function App() {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black font-sans">
 
-      {/* Video Background - GitHub Releases CDN */}
+      {/* Video Background - GitHub Releases CDN with CORS handling */}
       <video
         ref={videoRef}
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="none"
         className="absolute inset-0 w-full h-full object-cover opacity-60"
         style={{ 
           filter: 'brightness(0.8) contrast(1.1)',
@@ -275,16 +293,21 @@ export default function App() {
         onCanPlay={() => console.log('GitHub video ready to play')}
         onError={(e) => {
           console.error('GitHub video error:', e.target.error);
-          console.log('Using gradient background fallback');
+          console.log('Video failed to load from GitHub, using gradient background');
+          // Hide the video element and show gradient background
           e.target.style.display = 'none';
-        }}
-        onProgress={() => {
-          const video = videoRef.current;
-          if (video && video.buffered.length > 0) {
-            const buffered = (video.buffered.end(0) / video.duration) * 100;
-            if (buffered > 0) {
-              console.log(`GitHub video buffered: ${buffered.toFixed(1)}%`);
+          // Try to load video with different approach
+          setTimeout(() => {
+            if (e.target.style.display === 'none') {
+              console.log('Using gradient background fallback');
             }
+          }, 2000);
+        }}
+        onStalled={() => {
+          console.log('Video stalled, retrying...');
+          const video = videoRef.current;
+          if (video) {
+            video.load();
           }
         }}
       >
@@ -298,11 +321,13 @@ export default function App() {
         style={{ zIndex: -1 }}
       />
       
-      {/* Animated background particles for better visual appeal */}
-      <div className="absolute inset-0 opacity-20">
+      {/* Animated background particles for better visual appeal when video fails */}
+      <div className="absolute inset-0 opacity-30">
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white rounded-full animate-pulse"></div>
         <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white rounded-full animate-ping"></div>
         <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-1000"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-300 rounded-full animate-pulse delay-500"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-blue-300 rounded-full animate-ping delay-700"></div>
       </div>
 
       {/* Overlay */}
