@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Howl } from "howler";
 
-// Replace this URL with your Cloudflare R2 public URL after upload
-const VIDEO_URL = "https://pub-YOUR-BUCKET-ID.r2.dev/background.mp4";
+// For Vercel deployment - using GitHub Releases for video hosting
+const VIDEO_URL = "https://github.com/import-dhruv/Musila/releases/download/v1.0.0/background.mp4";
 const SONG_URL  = "/funkify.mp3";
 
 // ── All timestamps from description ─────────────────────────────────────────
